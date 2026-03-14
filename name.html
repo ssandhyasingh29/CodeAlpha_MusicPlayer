@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Music Player | Shubh Sahu</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Player Card -->
+    <div class="player">
+
+        <div class="cover">
+            <img id="cover-img" src="https://picsum.photos/300?random=1">
+        </div>
+
+        <div class="song-info">
+            <h2 id="title">Song Title</h2>
+            <p id="artist">Artist</p>
+        </div>
+
+        <!-- Progress -->
+        <div class="progress-container" id="progress-container">
+            <div class="progress" id="progress"></div>
+        </div>
+
+        <div class="time">
+            <span id="current-time">0:00</span>
+            <span id="duration">0:00</span>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button id="prev">⏮</button>
+            <button id="play">▶</button>
+            <button id="next">⏭</button>
+        </div>
+
+        <!-- Volume -->
+        <div class="volume-control">
+            🔊
+            <input type="range" id="volume" min="0" max="1" step="0.01" value="1">
+        </div>
+
+    </div>
+
+    <!-- Playlist -->
+    <div class="playlist">
+        <h3>Playlist</h3>
+        <ul id="playlist"></ul>
+    </div>
+
+</div>
+
+<audio id="audio"></audio>
+
+<script>const audio = document.getElementById("audio");
+const playBtn = document.getElementById("play");
+const prevBtn = document.getElementById("prev");
+const nextBtn = document.getElementById("next");
+const title = document.getElementById("title");
+const artist = document.getElementById("artist");
+const progress = document.getElementById("progress");
+const progressContainer = document.getElementById("progress-container");
+const currentTimeEl = document.getElementById("current-time");
+const durationEl = document.getElementById("duration");
+const volume = document.getElementById("volume");
+const playlistEl = document.getElementById("playlist");
+
+const songs = [
+    {
+        title: "Sample Song 1",
+        artist: "Demo Artist",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        cover: "https://picsum.photos/300?random=1"
+    },
+    {
+        title: "Sample Song 2",
+        artist: "Demo Artist",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        cover: "https://picsum.photos/300?random=2"
+    },
+    {
+        title: "Sample Song 3",
+        artist: "Demo Artist",
+        src: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+        cover: "https://picsum.photos/300?random=3"
+    }
+];
+
+let songIndex = 0;
+
+// Load Song
+function loadSong(index) {
+    const song = songs[index];
+    title.textContent = song.title;
+    artist.textContent = song.artist;
+    audio.src = song.src;
+    document.getElementById("cover-img").src = song.cover;
+    highlightActive();
+}
+
+// Play / Pause
+function playSong() {
+    audio.play();
+    playBtn.textContent = "⏸";
+}
+
+function pauseSong() {
+    audio.pause();
+    playBtn.textContent = "▶";
+}
+
+playBtn.addEventListener("click", () => {
+    if (audio.paused) playSong();
+    else pauseSong();
+});
+
+// Next / Prev
+nextBtn.addEventListener("click", () => {
+    songIndex = (songIndex + 1) % songs.length;
+    loadSong(songIndex);
+    playSong();
+});
+
+prevBtn.addEventListener("click", () => {
+    songIndex = (songIndex - 1 + songs.length) % songs.length;
+    loadSong(songIndex);
+    playSong();
+});
+
+// Update Progress
+audio.addEventListener("timeupdate", () => {
+    const { duration, currentTime } = audio;
+    const percent = (currentTime / duration) * 100;
+    progress.style.width = percent + "%";
+
+    currentTimeEl.textContent = formatTime(currentTime);
+    durationEl.textContent = formatTime(duration);
+});
+
+// Click Progress Bar
+progressContainer.addEventListener("click", (e) => {
+    const width = progressContainer.clientWidth;
+    const clickX = e.offsetX;
+    audio.currentTime = (clickX / width) * audio.duration;
+});
+
+// Volume
+volume.addEventListener("input", () => {
+    audio.volume = volume.value;
+});
+
+// Autoplay Next
+audio.addEventListener("ended", () => {
+    nextBtn.click();
+});
+
+// Format Time
+function formatTime(time) {
+    if (isNaN(time)) return "0:00";
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60).toString().padStart(2, "0");
+    return `${minutes}:${seconds}`;
+}
+
+// Playlist UI
+songs.forEach((song, index) => {
+    const li = document.createElement("li");
+    li.textContent = `${song.title} - ${song.artist}`;
+    li.addEventListener("click", () => {
+        songIndex = index;
+        loadSong(songIndex);
+        playSong();
+    });
+    playlistEl.appendChild(li);
+});
+
+function highlightActive() {
+    const items = playlistEl.querySelectorAll("li");
+    items.forEach((item, index) => {
+        item.classList.toggle("active", index === songIndex);
+    });
+}
+
+// Initial Load
+loadSong(songIndex);
+</script>
+</body>
+</html>
